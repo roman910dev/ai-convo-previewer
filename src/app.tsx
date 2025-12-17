@@ -1,4 +1,5 @@
 import type { UIMessage } from 'ai'
+import debounce from 'debounce'
 import { useState } from 'react'
 
 import ChatbotDemo from './components/chatbot-demo'
@@ -30,6 +31,18 @@ function fallback<T, Fallback>(
 	}
 }
 
+const makeId = (object: unknown, index: number) =>
+	window.crypto.subtle
+		.digest(
+			'SHA-256',
+			new TextEncoder().encode(`${JSON.stringify(object)}-${index}`),
+		)
+		.then((hash) =>
+			Array.from(new Uint8Array(hash))
+				.map((b) => b.toString(16).padStart(2, '0'))
+				.join(''),
+		)
+
 function App() {
 	const [state, setState] = useState<State>({
 		success: true,
@@ -39,30 +52,37 @@ function App() {
 	const makeError = (error: string, details?: string) =>
 		setState({ success: false, error, errorDetails: details ?? '' })
 
-	const onMessagesChange = (input: string) => {
+	const onMessagesChange = async (input: string) => {
 		const data = fallback(
 			(): UIMessage[] => JSON.parse(input),
 			(e) => makeError('Invalid JSON', e?.toString()),
 		)
 		if (!data) return
-		const uniqueIdMessages = fallback(
+		const uniqueIdMessages = await fallback(
 			() =>
-				data.map((message) => ({
-					...message,
-					id: window.crypto.randomUUID(),
-				})),
+				Promise.all(
+					data.map(async (message, i) => ({
+						...message,
+						id: await makeId(message, i),
+					})),
+				),
 			(e) => makeError('Invalid messages', e?.toString()),
 		)
 		if (!uniqueIdMessages) return
 		setState({ success: true, messages: uniqueIdMessages })
 	}
 
+	const debouncedOnMessagesChange = debounce(
+		(input: string) => onMessagesChange(input),
+		600,
+	)
+
 	return (
 		<div className="flex">
 			<div className="flex h-dvh w-full max-w-2xl flex-col border-r">
 				<Textarea
 					className="w-full flex-1 rounded-none border-none font-mono"
-					onChange={(e) => onMessagesChange(e.target.value)}
+					onChange={(e) => debouncedOnMessagesChange(e.target.value)}
 				/>
 				<div
 					title={state.errorDetails}
