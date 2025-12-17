@@ -1,6 +1,7 @@
 import type { UIMessage } from 'ai'
 import debounce from 'debounce'
 import { useState } from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
 
 import ChatbotDemo from './components/chatbot-demo'
 import { Textarea } from './components/ui/textarea'
@@ -69,6 +70,7 @@ function App() {
 			(e) => makeError('Invalid messages', e?.toString()),
 		)
 		if (!uniqueIdMessages) return
+
 		setState({ success: true, messages: uniqueIdMessages })
 	}
 
@@ -95,7 +97,15 @@ function App() {
 					{state.error ?? '.'}
 				</div>
 			</div>
-			<ChatbotDemo messages={state.messages ?? []} />
+			<ErrorBoundary
+				fallbackRender={({ resetErrorBoundary }) => {
+					if (state.success) resetErrorBoundary()
+					return <ChatbotDemo messages={[]} />
+				}}
+				onError={(e) => makeError('Invalid `UIMessage[]`', e.message)}
+			>
+				<ChatbotDemo messages={state.messages ?? []} />
+			</ErrorBoundary>
 		</div>
 	)
 }
