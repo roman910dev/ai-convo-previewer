@@ -76,13 +76,14 @@ function App() {
 
 	const debouncedOnMessagesChange = debounce(
 		(input: string) => onMessagesChange(input),
-		600,
+		400,
 	)
 
 	return (
 		<div className="flex">
 			<div className="flex h-dvh w-full max-w-2xl flex-col border-r">
 				<Textarea
+					placeholder="Paste your `UIMessage[]` here"
 					className="w-full flex-1 rounded-none border-none font-mono"
 					onChange={(e) => debouncedOnMessagesChange(e.target.value)}
 				/>
@@ -91,10 +92,14 @@ function App() {
 					className={cn(
 						'w-full border-t px-4 py-2 font-mono',
 						state.errorDetails && 'cursor-help',
-						state.error ? 'text-destructive' : 'text-transparent',
+						state.success ?
+							'text-muted-foreground'
+						:	'text-destructive',
 					)}
 				>
-					{state.error ?? '.'}
+					{state.success ?
+						'OK'
+					:	(state.error ?? 'Something went wrong')}
 				</div>
 			</div>
 			<ErrorBoundary
