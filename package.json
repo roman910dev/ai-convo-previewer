@@ -1,6 +1,10 @@
 {
 	"name": "ai-convo-previewer",
-	"private": true,
+	"author": {
+		"name": "roman910dev",
+		"url": "https://github.com/roman910dev"
+	},
+	"private": false,
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
