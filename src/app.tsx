@@ -4,6 +4,11 @@ import { useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import ChatbotDemo from './components/chatbot-demo'
+import {
+	ResizableHandle,
+	ResizablePanel,
+	ResizablePanelGroup,
+} from './components/ui/resizable'
 import { Textarea } from './components/ui/textarea'
 import { cn } from './lib/utils'
 
@@ -80,38 +85,47 @@ function App() {
 	)
 
 	return (
-		<div className="flex">
-			<div className="flex h-dvh w-full max-w-2xl flex-col border-r">
-				<Textarea
-					placeholder="Paste your `UIMessage[]` here"
-					className="w-full flex-1 rounded-none border-none font-mono"
-					onChange={(e) => debouncedOnMessagesChange(e.target.value)}
-				/>
-				<div
-					title={state.errorDetails}
-					className={cn(
-						'w-full border-t px-4 py-2 font-mono',
-						state.errorDetails && 'cursor-help',
-						state.success ?
-							'text-muted-foreground'
-						:	'text-destructive',
-					)}
-				>
-					{state.success ?
-						'OK'
-					:	(state.error ?? 'Something went wrong')}
+		<ResizablePanelGroup direction="horizontal">
+			<ResizablePanel defaultSize={50} minSize={20}>
+				<div className="flex h-dvh w-full flex-col border-r">
+					<Textarea
+						placeholder="Paste your `UIMessage[]` here"
+						className="w-full flex-1 rounded-none border-none font-mono"
+						onChange={(e) =>
+							debouncedOnMessagesChange(e.target.value)
+						}
+					/>
+					<div
+						title={state.errorDetails}
+						className={cn(
+							'w-full border-t px-4 py-2 font-mono',
+							state.errorDetails && 'cursor-help',
+							state.success ?
+								'text-muted-foreground'
+							:	'text-destructive',
+						)}
+					>
+						{state.success ?
+							'OK'
+						:	(state.error ?? 'Something went wrong')}
+					</div>
 				</div>
-			</div>
-			<ErrorBoundary
-				fallbackRender={({ resetErrorBoundary }) => {
-					if (state.success) resetErrorBoundary()
-					return <ChatbotDemo messages={[]} />
-				}}
-				onError={(e) => makeError('Invalid `UIMessage[]`', e.message)}
-			>
-				<ChatbotDemo messages={state.messages ?? []} />
-			</ErrorBoundary>
-		</div>
+			</ResizablePanel>
+			<ResizableHandle withHandle />
+			<ResizablePanel defaultSize={50} minSize={20}>
+				<ErrorBoundary
+					fallbackRender={({ resetErrorBoundary }) => {
+						if (state.success) resetErrorBoundary()
+						return <ChatbotDemo messages={[]} />
+					}}
+					onError={(e) =>
+						makeError('Invalid `UIMessage[]`', e.message)
+					}
+				>
+					<ChatbotDemo messages={state.messages ?? []} />
+				</ErrorBoundary>
+			</ResizablePanel>
+		</ResizablePanelGroup>
 	)
 }
 
