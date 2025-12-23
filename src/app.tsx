@@ -49,6 +49,29 @@ const makeId = (object: unknown, index: number) =>
 				.join(''),
 		)
 
+const formatJSON = (jsonStr: string) =>
+	JSON.stringify(JSON.parse(jsonStr), null, 2)
+
+const autoJSON = (input: string) => {
+	if (
+		!(
+			(input.startsWith('{') && input.endsWith('}')) ||
+			(input.startsWith('[') && input.endsWith(']'))
+		)
+	)
+		return input
+	try {
+		return [
+			'```json',
+			'// auto-detected JSON message',
+			formatJSON(input),
+			'```',
+		].join('\n')
+	} catch {
+		return input
+	}
+}
+
 function App() {
 	const [state, setState] = useState<State>({
 		success: true,
@@ -69,6 +92,11 @@ function App() {
 				Promise.all(
 					data.map(async (message, i) => ({
 						...message,
+						parts: message.parts.map((p) =>
+							p.type === 'text' ?
+								{ ...p, text: autoJSON(p.text ?? '') }
+							:	p,
+						),
 						id: await makeId(message, i),
 					})),
 				),
