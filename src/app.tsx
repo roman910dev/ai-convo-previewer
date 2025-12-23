@@ -1,15 +1,22 @@
 import type { UIMessage } from 'ai'
 import debounce from 'debounce'
+import { ListMinusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import ChatbotDemo from './components/chatbot-demo'
+import { Button } from './components/ui/button'
 import {
 	ResizableHandle,
 	ResizablePanel,
 	ResizablePanelGroup,
 } from './components/ui/resizable'
 import { Textarea } from './components/ui/textarea'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from './components/ui/tooltip'
 import { cn } from './lib/utils'
 
 type State =
@@ -73,10 +80,8 @@ const autoJSON = (input: string) => {
 }
 
 function App() {
-	const [state, setState] = useState<State>({
-		success: true,
-		messages: [],
-	})
+	const [input, setInput] = useState('')
+	const [state, setState] = useState<State>({ success: true, messages: [] })
 
 	const makeError = (error: string, details?: string) =>
 		setState({ success: false, error, errorDetails: details ?? '' })
@@ -119,14 +124,16 @@ function App() {
 					<Textarea
 						placeholder="Paste your `UIMessage[]` here"
 						className="w-full flex-1 rounded-none border-none font-mono"
-						onChange={(e) =>
+						value={input}
+						onChange={(e) => {
+							setInput(e.target.value)
 							debouncedOnMessagesChange(e.target.value)
-						}
+						}}
 					/>
 					<div
 						title={state.errorDetails}
 						className={cn(
-							'w-full border-t px-4 py-2 font-mono',
+							'relative w-full border-t px-4 py-3 font-mono',
 							state.errorDetails && 'cursor-help',
 							state.success ?
 								'text-muted-foreground'
@@ -136,6 +143,26 @@ function App() {
 						{state.success ?
 							'OK'
 						:	(state.error ?? 'Something went wrong')}
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="outline"
+									size="icon"
+									className="text-foreground absolute top-1.5 right-2"
+									disabled={!state.success}
+									onClick={() => {
+										console.log(state)
+										if (!state.success) return
+										const formatted = formatJSON(input)
+										console.log(formatted)
+										setInput(formatted)
+									}}
+								>
+									<ListMinusIcon className="size-4" />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>Format as JSON</TooltipContent>
+						</Tooltip>
 					</div>
 				</div>
 			</ResizablePanel>
