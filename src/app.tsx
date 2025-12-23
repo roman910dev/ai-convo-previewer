@@ -1,11 +1,12 @@
 import type { UIMessage } from 'ai'
 import debounce from 'debounce'
-import { ListMinusIcon } from 'lucide-react'
+import { EraserIcon, ListMinusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import ChatbotDemo from './components/chatbot-demo'
 import { Button } from './components/ui/button'
+import { ButtonGroup } from './components/ui/button-group'
 import {
 	ResizableHandle,
 	ResizablePanel,
@@ -120,10 +121,10 @@ function App() {
 	return (
 		<ResizablePanelGroup direction="horizontal">
 			<ResizablePanel defaultSize={50} minSize={20}>
-				<div className="flex h-dvh w-full flex-col border-r">
+				<div className="relative flex h-dvh w-full flex-col border-r">
 					<Textarea
 						placeholder="Paste your `UIMessage[]` here"
-						className="w-full flex-1 rounded-none border-none font-mono"
+						className="w-full flex-1 rounded-none border-none pb-12 font-mono"
 						value={input}
 						onChange={(e) => {
 							setInput(e.target.value)
@@ -133,7 +134,7 @@ function App() {
 					<div
 						title={state.errorDetails}
 						className={cn(
-							'relative w-full border-t px-4 py-3 font-mono',
+							'relative w-full border-t px-4 py-3 font-mono transition-colors',
 							state.errorDetails && 'cursor-help',
 							state.success ?
 								'text-muted-foreground'
@@ -143,27 +144,43 @@ function App() {
 						{state.success ?
 							'OK'
 						:	(state.error ?? 'Something went wrong')}
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									variant="outline"
-									size="icon"
-									className="text-foreground absolute top-1.5 right-2"
-									disabled={!state.success}
-									onClick={() => {
-										console.log(state)
-										if (!state.success) return
-										const formatted = formatJSON(input)
-										console.log(formatted)
-										setInput(formatted)
-									}}
-								>
-									<ListMinusIcon className="size-4" />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>Format as JSON</TooltipContent>
-						</Tooltip>
 					</div>
+					{input && (
+						<ButtonGroup className="text-foreground animate-in fade-in zoom-in-95 absolute bottom-14 left-1/2 -translate-x-1/2 duration-150">
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										variant="outline"
+										size="icon"
+										disabled={!state.success}
+										onClick={() => {
+											if (!state.success) return
+											try {
+												setInput(formatJSON(input))
+											} catch {
+												// do nothing
+											}
+										}}
+									>
+										<ListMinusIcon className="size-4" />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>Format JSON</TooltipContent>
+							</Tooltip>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Button
+										variant="outline"
+										size="icon"
+										onClick={() => setInput('')}
+									>
+										<EraserIcon className="size-4" />
+									</Button>
+								</TooltipTrigger>
+								<TooltipContent>Clear input</TooltipContent>
+							</Tooltip>
+						</ButtonGroup>
+					)}
 				</div>
 			</ResizablePanel>
 			<ResizableHandle withHandle />
