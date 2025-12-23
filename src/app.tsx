@@ -102,7 +102,7 @@ function App() {
 							state.errorDetails && 'cursor-help',
 							state.success ?
 								'text-muted-foreground'
-							:	'text-destructive',
+							:	'text-destructive bg-destructive/15',
 						)}
 					>
 						{state.success ?
